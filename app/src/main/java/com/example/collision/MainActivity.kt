@@ -591,7 +591,7 @@ class MainActivity : AppCompatActivity() {
         }
         val scrollParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(270)
+            dp(320)
         )
 
         val panel = LinearLayout(this).apply {
@@ -606,41 +606,45 @@ class MainActivity : AppCompatActivity() {
         }
 
         val countSpinner = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf("2个物体", "3个物体", "4个物体")
-            )
+            adapter = spinnerAdapter(listOf("2个物体", "3个物体", "4个物体"))
+            minimumHeight = dp(50)
             setSelection(1) // 默认3个
         }
 
         val boundarySpinner = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                BoundaryType.values().map { it.label }
-            )
+            adapter = spinnerAdapter(BoundaryType.values().map { it.label })
+            minimumHeight = dp(50)
         }
 
         val resetBtn = Button(this).apply {
             text = "重新发射"
-            textSize = 12f
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#0F766E"))
+            minHeight = dp(48)
         }
 
-        rowGlobal.addView(countSpinner, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        rowGlobal.addView(boundarySpinner, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f))
-        rowGlobal.addView(resetBtn)
+        rowGlobal.addView(countSpinner, LinearLayout.LayoutParams(0, dp(50), 1f))
+        rowGlobal.addView(boundarySpinner, LinearLayout.LayoutParams(0, dp(50), 1.2f))
         panel.addView(rowGlobal)
+
+        // 重新发射按钮独占一行，避免挤压上方两个选择框
+        val resetRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(0, dp(2), 0, dp(4))
+        }
+        resetRow.addView(resetBtn, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(48)
+        ))
+        panel.addView(resetRow)
 
         // 2. 选择要编辑的多边形对象
         val targetSpinner = Spinner(this)
         fun refreshTargetSpinner() {
             val items = simView.bodies.indices.map { "编辑对象 #${it + 1}" }
-            targetSpinner.adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                items
-            )
+            targetSpinner.adapter = spinnerAdapter(items)
+            targetSpinner.minimumHeight = dp(50)
             selectedBodyIndex = selectedBodyIndex.coerceIn(0, simView.bodies.lastIndex)
             targetSpinner.setSelection(selectedBodyIndex)
         }
@@ -654,19 +658,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         val shapeSpinner = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                BodyShapeType.values().map { it.label }
-            )
+            adapter = spinnerAdapter(BodyShapeType.values().map { it.label })
+            minimumHeight = dp(50)
         }
 
         val colorSpinner = Spinner(this).apply {
-            adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                colorPalette.map { "颜色: ${it.first}" }
-            )
+            adapter = spinnerAdapter(colorPalette.map { "颜色: ${it.first}" })
+            minimumHeight = dp(50)
         }
 
         rowShapeColor.addView(shapeSpinner, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f))
@@ -676,8 +674,9 @@ class MainActivity : AppCompatActivity() {
         // 4. 边数调节滑块
         val sidesLabel = TextView(this).apply {
             setTextColor(Color.WHITE)
-            textSize = 13f
+            textSize = 16f
             text = "边数: 3"
+            setPadding(0, dp(5), 0, dp(2))
         }
         val sidesSeek = SeekBar(this).apply {
             max = 9 // 3..12
@@ -689,8 +688,9 @@ class MainActivity : AppCompatActivity() {
         // 5. 边长/尺寸调节滑块
         val sizeLabel = TextView(this).apply {
             setTextColor(Color.WHITE)
-            textSize = 13f
+            textSize = 16f
             text = "边长/半径: 75"
+            setPadding(0, dp(5), 0, dp(2))
         }
         val sizeSeek = SeekBar(this).apply {
             max = 100 // 35..135
@@ -798,6 +798,27 @@ class MainActivity : AppCompatActivity() {
         scroll.addView(panel)
         root.addView(scroll, scrollParams)
         setContentView(root)
+    }
+
+
+    private fun spinnerAdapter(items: List<String>): ArrayAdapter<String> {
+        return object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent) as TextView
+                view.setTextColor(Color.parseColor("#F8FAFC"))
+                view.textSize = 16f
+                view.setPadding(dp(8), dp(8), dp(8), dp(8))
+                return view
+            }
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                view.setTextColor(Color.parseColor("#F8FAFC"))
+                view.setBackgroundColor(Color.parseColor("#334155"))
+                view.textSize = 16f
+                view.setPadding(dp(14), dp(12), dp(14), dp(12))
+                return view
+            }
+        }
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
