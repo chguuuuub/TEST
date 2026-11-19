@@ -1,0 +1,13 @@
+PolygonCollisionSim/
+├── .github/
+│   └── workflows/
+│       └── build_apk.yml          # GitHub Actions 自动打包 APK 配置
+├── app/
+│   ├── build.gradle               # App 模块构建配置
+│   └── src/
+│       └── main/
+│           ├── AndroidManifest.xml
+│           └── java/com/example/collision/
+│               └── MainActivity.kt # 完整物理引擎 + UI 控制 + Canvas 渲染
+├── build.gradle                   # 根目录构建配置
+└── settings.gradle                # 项目设置
